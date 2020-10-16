@@ -40,7 +40,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Key::Down => {
                     app.on_down();
                 }
-
+                Key::PageDown => {
+                    app.on_page_down();
+                }
+                Key::PageUp => {
+                    app.on_page_up();
+                }
                 _ => {}
             },
             Event::Tick => {

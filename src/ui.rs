@@ -20,14 +20,24 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .artists
         .items
         .iter()
-        .map(|i| ListItem::new(vec![Spans::from(Span::raw(*i))]))
+        .map(|i| ListItem::new(vec![Spans::from(Span::raw(i.name))]))
         .collect();
 
     let artists = List::new(artists)
         .block(Block::default().borders(Borders::ALL).title("Artists"))
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD))
-        .highlight_symbol("> ");
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD));
+    //     .highlight_symbol("> ");
+
+    let tracks: Vec<ListItem> = app
+        .tracks
+        .items
+        .iter()
+        .map(|t| ListItem::new(vec![Spans::from(Span::raw(t.title.as_str()))]))
+        .collect();
+
+    let tracks = List::new(tracks)
+        .block(Block::default().borders(Borders::ALL).title("Tracks"))
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD));
     f.render_stateful_widget(artists, chunks[0], &mut app.artists.state);
-    let block = Block::default().title("Tracks").borders(Borders::ALL);
-    f.render_widget(block, chunks[1]);
+    f.render_stateful_widget(tracks, chunks[1], &mut app.tracks.state);
 }
