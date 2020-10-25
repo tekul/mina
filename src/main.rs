@@ -1,11 +1,7 @@
 use crate::events::{Event, Events};
-use std::{error::Error, io, process};
-use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use std::{error::Error, io};
+use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::backend::TermionBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Modifier, Style};
-use tui::text::{Span, Spans};
-use tui::widgets::{Block, Borders, List, ListItem, Widget};
 use tui::Terminal;
 
 mod app;

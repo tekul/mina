@@ -1,13 +1,23 @@
 use crate::db::Track;
 use crate::widgets::StatefulList;
 
+use tui::widgets::TableState;
+
+#[derive(Debug, PartialEq)]
+enum Pane {
+    ARTISTS,
+    TRACKS,
+}
+
 pub struct App<'a> {
     pub title: &'a str,
     pub should_quit: bool,
     pub artists: StatefulList<Artist<'a>>,
     pub albums: StatefulList<&'a str>,
-    pub tracks: StatefulList<&'a Track>,
+    pub tracks: Vec<&'a Track>,
     all_tracks: &'a Vec<Track>,
+    current_pane: Pane,
+    pub track_list_state: TableState,
 }
 
 pub struct Artist<'a> {
@@ -28,10 +38,10 @@ impl<'a> App<'a> {
         albums.dedup();
 
         let current_artist = artists.get(0).unwrap();
-        let current_tracks = tracks
+        let current_tracks: Vec<&Track> = tracks
             .iter()
             .filter(|t| t.artist == current_artist.name)
-            .collect::<Vec<_>>();
+            .collect();
 
         App {
             title,
@@ -39,18 +49,48 @@ impl<'a> App<'a> {
             should_quit: false,
             artists: StatefulList::with_items(artists),
             albums: StatefulList::with_items(albums),
-            tracks: StatefulList::with_items(current_tracks),
+            tracks: current_tracks,
+            current_pane: Pane::ARTISTS,
+            track_list_state: TableState::default(),
         }
     }
 
     pub fn on_up(&mut self) {
-        self.artists.previous(1);
-        self.set_tracks();
+        if self.current_pane == Pane::ARTISTS {
+            self.artists.previous(1);
+            self.set_tracks();
+        } else {
+            self.track_list_state
+                .select(match self.track_list_state.selected() {
+                    Some(pos) => {
+                        if pos == 0 {
+                            Some(self.tracks.len() - 1)
+                        } else {
+                            Some(pos - 1)
+                        }
+                    }
+                    None => Some(0),
+                })
+        }
     }
 
     pub fn on_down(&mut self) {
-        self.artists.next(1);
-        self.set_tracks();
+        if self.current_pane == Pane::ARTISTS {
+            self.artists.next(1);
+            self.set_tracks();
+        } else {
+            self.track_list_state
+                .select(match self.track_list_state.selected() {
+                    Some(pos) => {
+                        if pos == self.tracks.len() - 1 {
+                            Some(0)
+                        } else {
+                            Some(pos + 1)
+                        }
+                    }
+                    None => Some(0),
+                })
+        }
     }
 
     pub fn on_page_up(&mut self) {
@@ -68,20 +108,30 @@ impl<'a> App<'a> {
             'q' => {
                 self.should_quit = true;
             }
+            '\t' => {
+                self.current_pane = match self.current_pane {
+                    Pane::ARTISTS => Pane::TRACKS,
+                    Pane::TRACKS => Pane::ARTISTS,
+                }
+            }
             _ => {}
         }
     }
 
     fn set_tracks(&mut self) {
+        if self.current_pane == Pane::TRACKS {
+            return;
+        }
         let index = self.artists.state.selected().unwrap();
         let current_artist = self.artists.items.get(index).unwrap();
-        let new_tracks = self
+        let new_tracks: Vec<&Track> = self
             .all_tracks
             .iter()
             .filter(|t| t.artist == current_artist.name)
-            .collect::<Vec<_>>();
+            .collect();
 
-        self.tracks = StatefulList::with_items(new_tracks);
+        self.tracks = new_tracks;
+        self.track_list_state.select(None);
     }
     pub fn on_tick(&mut self) {}
 }
