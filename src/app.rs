@@ -103,6 +103,12 @@ impl<'a> App<'a> {
         self.set_tracks();
     }
 
+    fn current_track(&mut self) -> Option<&Track> {
+        self.track_list_state
+            .selected()
+            .map(move |i| *self.tracks.get(i).unwrap())
+    }
+
     pub fn on_key(&mut self, c: char) {
         match c {
             'q' => {
@@ -110,10 +116,20 @@ impl<'a> App<'a> {
             }
             '\t' => {
                 self.current_pane = match self.current_pane {
-                    Pane::ARTISTS => Pane::TRACKS,
+                    Pane::ARTISTS => {
+                        match self.track_list_state.selected() {
+                            None => self.track_list_state.select(Some(0)),
+                            _ => (),
+                        };
+                        Pane::TRACKS
+                    }
                     Pane::TRACKS => Pane::ARTISTS,
                 }
             }
+            '\n' => match self.current_track() {
+                Some(track) => play_track(track),
+                _ => (),
+            },
             _ => {}
         }
     }
@@ -135,3 +151,5 @@ impl<'a> App<'a> {
     }
     pub fn on_tick(&mut self) {}
 }
+
+fn play_track(track: &Track) {}
