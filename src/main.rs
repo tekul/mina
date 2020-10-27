@@ -5,6 +5,7 @@ use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::backend::TermionBackend;
 use tui::Terminal;
 
+mod api;
 mod app;
 mod db;
 mod events;
@@ -39,7 +40,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let events = Events::new();
     let tracks = db::read_tracks()?;
-    let mut app = app::App::new(src_addr.as_str(), dest_addr.as_str(), &tracks);
+    let naim_api = api::Api::new(dest_addr.as_str(), src_addr.as_str());
+    let mut app = app::App::new(naim_api, &tracks);
 
     loop {
         terminal.draw(|f| ui::draw(f, &mut app))?;
