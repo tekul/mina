@@ -224,7 +224,6 @@ impl<'a> App<'a> {
     fn play_track(&self, track: PlaylistTrack) {
         let resp = self
             .client
-            .clone()
             .post(format!("{}/inputs/playqueue?where=end?clear=false", self.dest_url).as_str())
             .json(&track)
             .send();
