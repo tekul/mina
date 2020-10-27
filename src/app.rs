@@ -190,7 +190,10 @@ impl<'a> App<'a> {
                         };
                         Pane::TRACKS
                     }
-                    Pane::TRACKS => Pane::ARTISTS,
+                    Pane::TRACKS => {
+                        self.track_list_state.select(None);
+                        Pane::ARTISTS
+                    }
                 }
             }
             '\n' => match self.current_track() {
