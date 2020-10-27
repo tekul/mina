@@ -164,10 +164,14 @@ To update:
 PUT /levels?volume=28
 ```
 
-## Turn on when suspended
+## Power
+
+A `GET` request to `/power` returns an object with the fields `state` and `system` which can be either `on` or `lona` (standby).
+
+The system can also be wakened or suspended using:
 
 ```
-PUT /power?system=on
+PUT /power?system={on|lona}
 ```
 
 ## Tidal Login
