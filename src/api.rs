@@ -10,6 +10,11 @@ pub struct Api<'a> {
     client: reqwest::blocking::Client,
 }
 
+enum PowerState {
+    On,
+    Suspend,
+}
+
 impl<'a> Api<'a> {
     pub fn new(url: &'a str, src_url: &'a str) -> Self {
         Api {
@@ -73,6 +78,26 @@ impl<'a> Api<'a> {
             .send()
             .ok()
             .map(|_| volume)
+    }
+
+    pub fn power_on(&self) {
+        self.power(PowerState::On);
+    }
+
+    pub fn suspend(&self) {
+        self.power(PowerState::Suspend);
+    }
+
+    fn power(&self, power: PowerState) {
+        let system = match power {
+            PowerState::On => "on",
+            PowerState::Suspend => "lona",
+        };
+        let _response = self
+            .client
+            .put(format!("{}/power?system={}", self.url, system).as_str())
+            .send()
+            .map_err(|e| eprintln!("{}", e));
     }
 }
 

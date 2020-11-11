@@ -139,6 +139,8 @@ impl<'a> App<'a> {
             },
             '+' => self.volume = self.naim_api.incr_volume(self.volume),
             '-' => self.volume = self.naim_api.decr_volume(self.volume),
+            'P' => self.naim_api.power_on(),
+            'S' => self.naim_api.suspend(),
             _ => {}
         }
     }
