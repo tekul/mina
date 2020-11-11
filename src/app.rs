@@ -134,13 +134,14 @@ impl<'a> App<'a> {
                 }
             }
             '\n' => match self.current_track() {
-                Some(track) => self.naim_api.play_track(track),
+                Some(track) => self.naim_api.queue_track(track),
                 None => (),
             },
             '+' => self.volume = self.naim_api.incr_volume(self.volume),
             '-' => self.volume = self.naim_api.decr_volume(self.volume),
             'P' => self.naim_api.power_on(),
             'S' => self.naim_api.suspend(),
+            'C' => self.naim_api.clear_playlist(),
             _ => {}
         }
     }

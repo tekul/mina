@@ -24,18 +24,21 @@ impl<'a> Api<'a> {
         }
     }
 
-    pub fn play_track(&self, track: &Track) {
-        let resp = self
+    pub fn queue_track(&self, track: &Track) {
+        let _resp = self
             .client
             .post(format!("{}/inputs/playqueue?where=end?clear=false", self.url).as_str())
             .json(&PlaylistTrack::from_track(self.src_url, track))
-            .send();
-        match resp {
-            Ok(_) => (),
-            Err(e) => {
-                eprintln!("Error {}", e);
-            }
-        }
+            .send()
+            .map_err(|e| eprintln!("{}", e));
+    }
+
+    pub fn clear_playlist(&self) {
+        let _resp = self
+            .client
+            .post(format!("{}/inputs/playqueue?clear=true", self.url).as_str())
+            .send()
+            .map_err(|e| eprintln!("{}", e));
     }
 
     pub fn get_volume(&self) -> Result<u8, Box<dyn Error>> {
