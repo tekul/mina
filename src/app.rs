@@ -19,6 +19,7 @@ pub struct App<'a> {
     current_pane: Pane,
     pub track_list_state: TableState,
     naim_api: api::Api<'a>,
+    volume: Option<u8>,
 }
 
 pub struct Artist<'a> {
@@ -53,6 +54,7 @@ impl<'a> App<'a> {
             current_pane: Pane::ARTISTS,
             track_list_state: TableState::default(),
             naim_api,
+            volume: None,
         }
     }
 
@@ -135,6 +137,8 @@ impl<'a> App<'a> {
                 Some(track) => self.naim_api.play_track(track),
                 None => (),
             },
+            '+' => self.volume = self.naim_api.incr_volume(self.volume),
+            '-' => self.volume = self.naim_api.decr_volume(self.volume),
             _ => {}
         }
     }

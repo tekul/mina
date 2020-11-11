@@ -1,6 +1,8 @@
 use crate::db::Track;
 
 use serde::Serialize;
+use std::collections::HashMap;
+use std::error::Error;
 
 pub struct Api<'a> {
     url: &'a str,
@@ -27,9 +29,50 @@ impl<'a> Api<'a> {
             Ok(_) => (),
             Err(e) => {
                 eprintln!("Error {}", e);
-                dbg!(track);
             }
         }
+    }
+
+    pub fn get_volume(&self) -> Result<u8, Box<dyn Error>> {
+        let res: HashMap<String, String> = self
+            .client
+            .get(format!("{}/levels", self.url).as_str())
+            .send()?
+            .json()?;
+        let volume = res
+            .get("volume")
+            .ok_or("'volume' not found in levels object")?
+            .parse::<u8>()
+            .unwrap();
+        Ok(volume)
+    }
+
+    pub fn incr_volume(&self, current: Option<u8>) -> Option<u8> {
+        let current_volume = current.or(self.get_volume().ok())?;
+
+        if current_volume < 100 {
+            self.set_volume(current_volume + 1)
+        } else {
+            current
+        }
+    }
+
+    pub fn decr_volume(&self, current: Option<u8>) -> Option<u8> {
+        let current_volume = current.or(self.get_volume().ok())?;
+
+        if current_volume > 0 {
+            self.set_volume(current_volume - 1)
+        } else {
+            current
+        }
+    }
+
+    fn set_volume(&self, volume: u8) -> Option<u8> {
+        self.client
+            .put(format!("{}/levels?volume={}", self.url, volume).as_str())
+            .send()
+            .ok()
+            .map(|_| volume)
     }
 }
 
