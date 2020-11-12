@@ -137,6 +137,7 @@ impl<'a> App<'a> {
                 Some(track) => self.naim_api.queue_track(track),
                 None => (),
             },
+            'p' => self.naim_api.toggle_play_pause(),
             '+' => self.volume = self.naim_api.incr_volume(self.volume),
             '-' => self.volume = self.naim_api.decr_volume(self.volume),
             'P' => self.naim_api.power_on(),

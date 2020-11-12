@@ -83,6 +83,14 @@ impl<'a> Api<'a> {
             .map(|_| volume)
     }
 
+    pub fn toggle_play_pause(&self) {
+        let _result = self
+            .client
+            .get(format!("{}/nowplaying?cmd=playpause", self.url).as_str())
+            .send()
+            .map_err(|e| eprintln!("{}", e));
+    }
+
     pub fn power_on(&self) {
         self.power(PowerState::On);
     }
