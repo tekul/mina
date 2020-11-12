@@ -82,18 +82,22 @@ impl<'a> App<'a> {
             self.artists.next(1);
             self.set_tracks();
         } else {
-            self.track_list_state
-                .select(match self.track_list_state.selected() {
-                    Some(pos) => {
-                        if pos == self.tracks.len() - 1 {
-                            Some(0)
-                        } else {
-                            Some(pos + 1)
-                        }
-                    }
-                    None => Some(0),
-                })
+            self.select_next_track();
         }
+    }
+
+    fn select_next_track(&mut self) {
+        self.track_list_state
+            .select(match self.track_list_state.selected() {
+                Some(pos) => {
+                    if pos == self.tracks.len() - 1 {
+                        Some(0)
+                    } else {
+                        Some(pos + 1)
+                    }
+                }
+                None => Some(0),
+            })
     }
 
     pub fn on_page_up(&mut self) {
@@ -134,7 +138,10 @@ impl<'a> App<'a> {
                 }
             }
             '\n' => match self.current_track() {
-                Some(track) => self.naim_api.queue_track(track),
+                Some(track) => {
+                    self.naim_api.queue_track(track);
+                    self.select_next_track();
+                }
                 None => (),
             },
             'p' => self.naim_api.toggle_play_pause(),
