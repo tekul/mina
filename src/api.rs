@@ -1,6 +1,6 @@
 use crate::db::Track;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -22,6 +22,34 @@ impl<'a> Api<'a> {
             src_url,
             client: reqwest::blocking::Client::new(),
         }
+    }
+
+    fn get_playlist(&self) -> Result<Playlist, reqwest::Error> {
+        self.client
+            .get(format!("{}/inputs/playqueue", self.url).as_str())
+            .send()?
+            .json::<Playlist>()
+    }
+
+    // Start playing from the current entry or beginning of the playlist
+    pub fn play(&self) {
+        match self.get_playlist() {
+            Err(e) => eprint!("{}", e),
+            Ok(playlist) => {
+                let entry = playlist.current.or(playlist
+                    .children
+                    .and_then(|children| children.get(0).map(|e| e.ussi.clone())));
+                entry.map(|e| self.play_entry(e));
+            }
+        }
+    }
+
+    fn play_entry(&self, entry: String) {
+        let _result = self
+            .client
+            .put(format!("{}/inputs/playqueue?current={}", self.url, entry).as_str())
+            .send()
+            .map_err(|e| eprintln!("{}", e));
     }
 
     pub fn queue_track(&self, track: &Track) {
@@ -125,6 +153,26 @@ pub struct PlaylistTrack<'a> {
     mimeType: &'a str,
     serverId: &'a str,
     uri: String,
+}
+#[derive(Debug, Deserialize)]
+#[allow(non_snake_case)]
+pub struct PlaylistEntry {
+    name: String,
+    artistName: String,
+    albumName: String,
+    class: String,
+    ussi: String,
+    artwork: String,
+    track: String,
+    mimeType: String,
+    serverId: String,
+    uri: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct Playlist {
+    current: Option<String>,
+    children: Option<Vec<PlaylistEntry>>,
 }
 
 impl<'a> PlaylistTrack<'a> {

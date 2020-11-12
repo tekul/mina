@@ -144,7 +144,8 @@ impl<'a> App<'a> {
                 }
                 None => (),
             },
-            'p' => self.naim_api.toggle_play_pause(),
+            'p' => self.naim_api.play(),
+            ' ' => self.naim_api.toggle_play_pause(),
             '+' => self.volume = self.naim_api.incr_volume(self.volume),
             '-' => self.volume = self.naim_api.decr_volume(self.volume),
             'P' => self.naim_api.power_on(),
