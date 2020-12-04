@@ -1,5 +1,6 @@
 use crate::db::Track;
 
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
@@ -45,11 +46,12 @@ impl<'a> Api<'a> {
     }
 
     fn play_entry(&self, entry: String) {
-        let _result = self
-            .client
-            .put(format!("{}/inputs/playqueue?current={}", self.url, entry).as_str())
-            .send()
-            .map_err(|e| eprintln!("{}", e));
+        let url = Url::parse_with_params(
+            &format!("{}/inputs/playqueue", self.url),
+            &[("current", entry)],
+        )
+        .unwrap();
+        let _response = self.client.put(url).send().map_err(|e| eprintln!("{}", e));
     }
 
     pub fn queue_track(&self, track: &Track) {
