@@ -203,7 +203,6 @@ fn artwork_url(dlna_url: &str, track: &Track) -> String {
         url.push_str(&track.album_art_id.to_string());
         url.push_str("-");
         url.push_str(&track.id.to_string());
-        dbg!(&url);
         url
     }
 }
@@ -219,6 +218,5 @@ fn track_url(dlna_url: &str, track: &Track) -> String {
     url.push_str("/MediaItems/");
     url.push_str(&track.id.to_string());
     url.push_str(&extension);
-    dbg!(&url);
     url
 }
