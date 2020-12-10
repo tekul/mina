@@ -37,10 +37,17 @@ impl<'a> Api<'a> {
         match self.get_playlist() {
             Err(e) => eprint!("{}", e),
             Ok(playlist) => {
-                let entry = playlist.current.or(playlist
-                    .children
-                    .and_then(|children| children.get(0).map(|e| e.ussi.clone())));
-                entry.map(|e| self.play_entry(e));
+                let entry = if playlist.current.is_some() {
+                    playlist.current
+                } else {
+                    playlist
+                        .children
+                        .and_then(|children| children.get(0).map(|e| e.ussi.clone()))
+                };
+
+                if let Some(e) = entry {
+                    self.play_entry(e)
+                }
             }
         }
     }
@@ -86,7 +93,7 @@ impl<'a> Api<'a> {
     }
 
     pub fn incr_volume(&self, current: Option<u8>) -> Option<u8> {
-        let current_volume = current.or(self.get_volume().ok())?;
+        let current_volume = current.or_else(|| self.get_volume().ok())?;
 
         if current_volume < 100 {
             self.set_volume(current_volume + 1)
@@ -96,7 +103,7 @@ impl<'a> Api<'a> {
     }
 
     pub fn decr_volume(&self, current: Option<u8>) -> Option<u8> {
-        let current_volume = current.or(self.get_volume().ok())?;
+        let current_volume = current.or_else(|| self.get_volume().ok())?;
 
         if current_volume > 0 {
             self.set_volume(current_volume - 1)
@@ -201,7 +208,7 @@ fn artwork_url(dlna_url: &str, track: &Track) -> String {
         let mut url = dlna_url.to_string();
         url.push_str("/AlbumArt/");
         url.push_str(&track.album_art_id.to_string());
-        url.push_str("-");
+        url.push('-');
         url.push_str(&track.id.to_string());
         url
     }

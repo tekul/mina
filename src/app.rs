@@ -15,7 +15,7 @@ pub struct App<'a> {
     pub artists: StatefulList<Artist<'a>>,
     pub albums: StatefulList<&'a str>,
     pub tracks: Vec<&'a Track>,
-    all_tracks: &'a Vec<Track>,
+    all_tracks: &'a [Track],
     current_pane: Pane,
     pub track_list_state: TableState,
     naim_api: api::Api<'a>,
@@ -27,7 +27,7 @@ pub struct Artist<'a> {
 }
 
 impl<'a> App<'a> {
-    pub fn new(naim_api: api::Api<'a>, tracks: &'a Vec<Track>) -> App<'a> {
+    pub fn new(naim_api: api::Api<'a>, tracks: &'a [Track]) -> App<'a> {
         let mut artists = tracks.iter().map(|t| t.artist.as_str()).collect::<Vec<_>>();
         let mut albums = tracks.iter().map(|t| t.album.as_str()).collect::<Vec<_>>();
         artists.sort_unstable();
@@ -113,7 +113,7 @@ impl<'a> App<'a> {
     fn current_track(&self) -> Option<&Track> {
         self.track_list_state
             .selected()
-            .map(move |i| *self.tracks.get(i).unwrap())
+            .map(|i| *self.tracks.get(i).unwrap())
         //            .map(|t| PlaylistTrack::from_track(self.src_url, t))
     }
 
@@ -125,9 +125,8 @@ impl<'a> App<'a> {
             '\t' => {
                 self.current_pane = match self.current_pane {
                     Pane::ARTISTS => {
-                        match self.track_list_state.selected() {
-                            None => self.track_list_state.select(Some(0)),
-                            _ => (),
+                        if self.track_list_state.selected().is_none() {
+                            self.track_list_state.select(Some(0));
                         };
                         Pane::TRACKS
                     }
@@ -137,13 +136,12 @@ impl<'a> App<'a> {
                     }
                 }
             }
-            '\n' => match self.current_track() {
-                Some(track) => {
+            '\n' => {
+                if let Some(track) = self.current_track() {
                     self.naim_api.queue_track(track);
                     self.select_next_track();
                 }
-                None => (),
-            },
+            }
             'p' => self.naim_api.play(),
             ' ' => self.naim_api.toggle_play_pause(),
             '+' => self.volume = self.naim_api.incr_volume(self.volume),
