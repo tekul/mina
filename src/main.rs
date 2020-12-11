@@ -63,6 +63,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Key::PageUp => {
                     app.on_page_up();
                 }
+                Key::Backspace => {
+                    app.on_backspace();
+                }
                 _ => {}
             },
             Event::Tick => {

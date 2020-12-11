@@ -10,11 +10,19 @@ enum Pane {
     TRACKS,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum Mode {
+    Normal,
+    SearchInput,
+}
+
 pub struct App<'a> {
+    pub mode: Mode,
     pub should_quit: bool,
     pub artists: StatefulList<Artist<'a>>,
     pub albums: StatefulList<&'a str>,
     pub tracks: Vec<&'a Track>,
+    pub search_input: String,
     all_tracks: &'a [Track],
     current_pane: Pane,
     pub track_list_state: TableState,
@@ -46,11 +54,13 @@ impl<'a> App<'a> {
             .collect();
 
         App {
+            mode: Mode::Normal,
             all_tracks: tracks,
             should_quit: false,
             artists: StatefulList::with_items(artists),
             albums: StatefulList::with_items(albums),
             tracks: current_tracks,
+            search_input: String::new(),
             current_pane: Pane::ARTISTS,
             track_list_state: TableState::default(),
             naim_api,
@@ -110,6 +120,12 @@ impl<'a> App<'a> {
         self.set_tracks();
     }
 
+    pub fn on_backspace(&mut self) {
+        if self.mode == Mode::SearchInput {
+            self.search_input.pop();
+        }
+    }
+
     fn current_track(&self) -> Option<&Track> {
         self.track_list_state
             .selected()
@@ -118,38 +134,49 @@ impl<'a> App<'a> {
     }
 
     pub fn on_key(&mut self, c: char) {
-        match c {
-            'q' => {
-                self.should_quit = true;
-            }
-            '\t' => {
-                self.current_pane = match self.current_pane {
-                    Pane::ARTISTS => {
-                        if self.track_list_state.selected().is_none() {
-                            self.track_list_state.select(Some(0));
-                        };
-                        Pane::TRACKS
-                    }
-                    Pane::TRACKS => {
-                        self.track_list_state.select(None);
-                        Pane::ARTISTS
+        match self.mode {
+            Mode::Normal => match c {
+                'q' => {
+                    self.should_quit = true;
+                }
+                '\t' => {
+                    self.current_pane = match self.current_pane {
+                        Pane::ARTISTS => {
+                            if self.track_list_state.selected().is_none() {
+                                self.track_list_state.select(Some(0));
+                            };
+                            Pane::TRACKS
+                        }
+                        Pane::TRACKS => {
+                            self.track_list_state.select(None);
+                            Pane::ARTISTS
+                        }
                     }
                 }
-            }
-            '\n' => {
-                if let Some(track) = self.current_track() {
-                    self.naim_api.queue_track(track);
-                    self.select_next_track();
+                '\n' => {
+                    if let Some(track) = self.current_track() {
+                        self.naim_api.queue_track(track);
+                        self.select_next_track();
+                    }
+                }
+                'p' => self.naim_api.play(),
+                ' ' => self.naim_api.toggle_play_pause(),
+                '+' => self.volume = self.naim_api.incr_volume(self.volume),
+                '-' => self.volume = self.naim_api.decr_volume(self.volume),
+                'P' => self.naim_api.power_on(),
+                'S' => self.naim_api.suspend(),
+                'C' => self.naim_api.clear_playlist(),
+                '/' => self.mode = Mode::SearchInput,
+                _ => {}
+            },
+            Mode::SearchInput => {
+                if c == '\n' {
+                    self.mode = Mode::Normal;
+                    self.next_search_match();
+                } else {
+                    self.search_input.push(c);
                 }
             }
-            'p' => self.naim_api.play(),
-            ' ' => self.naim_api.toggle_play_pause(),
-            '+' => self.volume = self.naim_api.incr_volume(self.volume),
-            '-' => self.volume = self.naim_api.decr_volume(self.volume),
-            'P' => self.naim_api.power_on(),
-            'S' => self.naim_api.suspend(),
-            'C' => self.naim_api.clear_playlist(),
-            _ => {}
         }
     }
 
@@ -168,5 +195,8 @@ impl<'a> App<'a> {
         self.tracks = new_tracks;
         self.track_list_state.select(None);
     }
+
+    fn next_search_match(&mut self) {}
+
     pub fn on_tick(&mut self) {}
 }
