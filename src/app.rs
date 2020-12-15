@@ -23,6 +23,7 @@ pub struct App<'a> {
     pub albums: StatefulList<&'a str>,
     pub tracks: Vec<&'a Track>,
     pub search_input: String,
+    current_match: Option<usize>,
     all_tracks: &'a [Track],
     current_pane: Pane,
     pub track_list_state: TableState,
@@ -61,6 +62,7 @@ impl<'a> App<'a> {
             albums: StatefulList::with_items(albums),
             tracks: current_tracks,
             search_input: String::new(),
+            current_match: None,
             current_pane: Pane::ARTISTS,
             track_list_state: TableState::default(),
             naim_api,
@@ -111,13 +113,17 @@ impl<'a> App<'a> {
     }
 
     pub fn on_page_up(&mut self) {
-        self.artists.previous(10);
-        self.set_tracks();
+        if self.current_pane == Pane::ARTISTS {
+            self.artists.previous(10);
+            self.set_tracks();
+        }
     }
 
     pub fn on_page_down(&mut self) {
-        self.artists.next(10);
-        self.set_tracks();
+        if self.current_pane == Pane::ARTISTS {
+            self.artists.next(10);
+            self.set_tracks();
+        }
     }
 
     pub fn on_backspace(&mut self) {
@@ -159,6 +165,7 @@ impl<'a> App<'a> {
                         self.select_next_track();
                     }
                 }
+                'n' => self.next_search_match(),
                 'p' => self.naim_api.play(),
                 ' ' => self.naim_api.toggle_play_pause(),
                 '+' => self.volume = self.naim_api.incr_volume(self.volume),
@@ -172,6 +179,7 @@ impl<'a> App<'a> {
             Mode::SearchInput => {
                 if c == '\n' {
                     self.mode = Mode::Normal;
+                    self.current_match = None;
                     self.next_search_match();
                 } else {
                     self.search_input.push(c);
@@ -196,7 +204,47 @@ impl<'a> App<'a> {
         self.track_list_state.select(None);
     }
 
-    fn next_search_match(&mut self) {}
+    fn next_search_match(&mut self) {
+        let start = self.current_match.map(|n| n + 1).unwrap_or(0);
+
+        for i in start..self.all_tracks.len() {
+            let track = &self.all_tracks[i];
+
+            if track.artist.contains(&self.search_input)
+                || track.album.contains(&self.search_input)
+                || track.title.contains(&self.search_input)
+            {
+                self.current_match = Some(i);
+                self.select_track(track);
+                break;
+            }
+        }
+    }
+
+    fn select_track(&mut self, track: &Track) {
+        self.select_artist(&track.artist);
+        for i in 0..self.tracks.len() {
+            if self.tracks[i] == track {
+                self.track_list_state.select(Some(i));
+            }
+        }
+    }
+
+    fn select_artist(&mut self, artist: &str) {
+        // Check if current artist matches first
+        if let Some(i) = self.artists.state.selected() {
+            if self.artists.items[i].name == artist {
+                return;
+            }
+        }
+        for i in 0..self.artists.items.len() {
+            if self.artists.items[i].name == artist {
+                self.artists.state.select(Some(i));
+                break;
+            }
+        }
+        self.set_tracks();
+    }
 
     pub fn on_tick(&mut self) {}
 }
