@@ -33,8 +33,9 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let rows = app
         .tracks
         .iter()
-        .map(|i| Row::Data(vec![i.title.as_str(), i.album.as_str()].into_iter()));
-    let tracks_table = Table::new(vec!["Title", "Album"].into_iter(), rows)
+        .map(|i| Row::new(vec![i.title.as_str(), i.album.as_str()]));
+    let tracks_table = Table::new(rows)
+        .header(Row::new(vec!["Title", "Album"]))
         .block(Block::default().borders(Borders::ALL).title("Tracks"))
         .highlight_style(selected_style)
         .widths(&[Constraint::Percentage(50), Constraint::Percentage(50)]);

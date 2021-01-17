@@ -1,3 +1,6 @@
 /target
 minidlna.db
 tracks.csv
+.vscode
+Session.vim
+.idea
