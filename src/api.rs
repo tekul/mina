@@ -64,7 +64,7 @@ impl<'a> Api<'a> {
     pub fn queue_track(&self, track: &Track) {
         let _resp = self
             .client
-            .post(format!("{}/inputs/playqueue?where=end?clear=false", self.url).as_str())
+            .post(format!("{}/inputs/playqueue?where=end&clear=false", self.url).as_str())
             .json(&PlaylistTrack::from_track(self.src_url, track))
             .send()
             .map_err(|e| eprintln!("{}", e));
