@@ -4,11 +4,13 @@ A simple terminal app to manage the playlist for a music streamer. Built in Rust
 
 ## Background
 
-I have a music streamer which is very good but is controlled by an android app which is appaling when trying to use it with a local UPNP server (MiniDLNA). It consistently shows folder contents as blank until the app is restarted. It's not a problem with MiniDLNA since lots of other open source apps are able to view the contents just fine. The text interface is also much faster to use than browsing directories using DLNA.
+I have a music streamer which is very good but is controlled by an android app which is just appaling when trying to use it with a local UPNP server (MiniDLNA). It consistently shows folder contents as blank until the app is restarted. It's not a problem with MiniDLNA since lots of other open source apps are able to view the contents just fine.
 
-I want to be able to easily navigate the contents and add tracks to the streamer's playlist. A bit of investigation showed that it uses a simple API over HTTP to manage the playlist. DLNA is only used for browsing the server contents from the app. DLNA is really hideous. I managed to avoid using SOAP back when it was in fashion so have no interest in starting now :). Instead I decided to dump the track list directly from MiniDLNA's sqlite database into a CSV file and use that. I don't add music to the server that often so it's not a big issue to do it that way.
+I want to be able to easily navigate the server contents and add tracks to the streamer's playlist. A bit of investigation showed that a simple API over HTTP is used to manage the playlist and DLNA is only used for browsing the server contents from the app. DLNA is really hideous - I managed to avoid using SOAP back when it was in fashion so have no interest in starting now :). Instead I decided to dump the track list directly from MiniDLNA's sqlite database into a CSV file and use that. I don't add music to the server that often so it's not a big issue to do it that way.
 
 Although it is possible to have an app (such as upplay) maintain a playlist and play through the streamer, the playlist stops playing when the app does. I want to be able to use the on-board playlist that the streamer maintains itself.
+
+Not only is it more reliable, but the tui-based app is also much faster to use than browsing directories using DLNA and I can quickly do searches by track or artist names.
 
 ## Dumping MiniDLNA DB to CSV File
 
@@ -20,7 +22,7 @@ sqlite3 -csv -header < dump_tracks.sql minidlna.db > tracks.csv
 
 ## Playlist API
 
-The playlist is updated by making a POST repuest containing list of JSON track objects with some additional parameters to say where they should be added in the queue.
+The playlist is updated by making a POST request containing list of JSON track objects with some additional parameters to say where they should be added in the queue.
 
 ### List contents
 
