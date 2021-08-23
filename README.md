@@ -4,7 +4,7 @@ A simple terminal app to manage the playlist for a music streamer. Built in Rust
 
 ## Background
 
-I have a music streamer which is very good but is controlled by an android app which is just appaling when trying to use it with a local UPNP server (MiniDLNA). It consistently shows folder contents as blank until the app is restarted. It's not a problem with MiniDLNA since lots of other open source apps are able to view the contents just fine.
+I have a music streamer which is very good but is controlled by an android app which is appalling when trying to use it with a local UPNP server (MiniDLNA). It consistently shows folder contents as blank until the app is restarted. It's not a problem with MiniDLNA since lots of other open source apps are able to view the contents just fine.
 
 I want to be able to easily navigate the server contents and add tracks to the streamer's playlist. A bit of investigation showed that a simple API over HTTP is used to manage the playlist and DLNA is only used for browsing the server contents from the app. DLNA is really hideous - I managed to avoid using SOAP back when it was in fashion so have no interest in starting now :). Instead I decided to dump the track list directly from MiniDLNA's sqlite database into a CSV file and use that. I don't add music to the server that often so it's not a big issue to do it that way.
 
